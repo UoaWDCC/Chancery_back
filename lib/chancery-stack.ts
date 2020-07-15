@@ -7,10 +7,10 @@ export class ChanceryStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const handler = new lambda.Function(this, "APIquestion", {
+    const handler = new lambda.Function(this, "APIflashcard", {
       runtime: lambda.Runtime.NODEJS_10_X,
       code: lambda.Code.asset("resources"),
-      handler: "api_question.main",
+      handler: "api_flashcard.main",
     });
 
     const api = new apigateway.RestApi(this, "rest-api", {
