@@ -18,6 +18,13 @@ export class ChanceryStack extends cdk.Stack {
           billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       });
 
+
+      // create api
+      const restApi = new apigateway.RestApi(this,
+        'rest-api',
+      );
+
+      // single flashcard lambda
       const handler = new lambda.Function(this, "APIflashcard", {
         runtime: lambda.Runtime.NODEJS_10_X,
         code: lambda.Code.asset("resources"),
@@ -28,20 +35,26 @@ export class ChanceryStack extends cdk.Stack {
         actions: ['dynamodb:GetItem'],
         resources: [flashcardTable.tableArn],
       }));
-
-      const restApi = new apigateway.LambdaRestApi(this,
-        'rest-api',
-        {
-          proxy: false,
-          handler,
-        },
-      );
       
+      // single flashcard lambda integration
       const apiFlashcardResource = restApi.root.addResource('flashcard');
       const idResource = apiFlashcardResource.addResource('{Id}');
       
       const apiLambdaIntegration = new apigateway.LambdaIntegration(handler);
       idResource.addMethod('GET', apiLambdaIntegration);
       
+      // all flashcard lambda 
+      const scanLambda = new lambda.Function(this, 'ScanFlashcard', {
+				runtime: lambda.Runtime.NODEJS_10_X,
+				code: lambda.Code.fromAsset('resources'),
+				handler: 'scan_flashcard.main'
+      });
+      
+      // all flashcard lambda integration
+      const apiScanInteg = new apigateway.LambdaIntegration(scanLambda);
+			const apiScan = restApi.root.addResource('scan');
+      apiScan.addMethod('GET', apiScanInteg);
+      
+      flashcardTable.grantReadData(scanLambda);
   }
 }
