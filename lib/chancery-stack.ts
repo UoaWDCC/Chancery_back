@@ -21,40 +21,37 @@ export class ChanceryStack extends cdk.Stack {
 
       // create api
       const restApi = new apigateway.RestApi(this,
-        'rest-api',
+        'flashcard-api',
       );
 
       // single flashcard lambda
-      const handler = new lambda.Function(this, "APIflashcard", {
+      const singleFlashcardLambda = new lambda.Function(this, "APIflashcard", {
         runtime: lambda.Runtime.NODEJS_10_X,
         code: lambda.Code.asset("resources"),
         handler: "api_flashcard.main",
       });
 
-      handler.addToRolePolicy(new iam.PolicyStatement({
-        actions: ['dynamodb:GetItem'],
-        resources: [flashcardTable.tableArn],
-      }));
+      flashcardTable.grantReadData(singleFlashcardLambda);
       
       // single flashcard lambda integration
       const apiFlashcardResource = restApi.root.addResource('flashcard');
       const idResource = apiFlashcardResource.addResource('{Id}');
       
-      const apiLambdaIntegration = new apigateway.LambdaIntegration(handler);
+      const apiLambdaIntegration = new apigateway.LambdaIntegration(singleFlashcardLambda);
       idResource.addMethod('GET', apiLambdaIntegration);
       
       // all flashcard lambda 
-      const scanLambda = new lambda.Function(this, 'ScanFlashcard', {
+      const scanFlashcardLambda = new lambda.Function(this, 'ScanFlashcard', {
 				runtime: lambda.Runtime.NODEJS_10_X,
 				code: lambda.Code.fromAsset('resources'),
 				handler: 'scan_flashcard.main'
       });
       
       // all flashcard lambda integration
-      const apiScanInteg = new apigateway.LambdaIntegration(scanLambda);
-			const apiScan = restApi.root.addResource('scan');
-      apiScan.addMethod('GET', apiScanInteg);
+      const apiScanFlashcardInteg = new apigateway.LambdaIntegration(scanFlashcardLambda);
+			const apiScanFlashcard = apiFlashcardResource.addResource('scan');
+      apiScanFlashcard.addMethod('GET', apiScanFlashcardInteg);
       
-      flashcardTable.grantReadData(scanLambda);
+      flashcardTable.grantReadData(scanFlashcardLambda);
   }
 }
