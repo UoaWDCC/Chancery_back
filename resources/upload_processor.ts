@@ -3,6 +3,7 @@ import { DocumentClient } from 'aws-sdk/clients/dynamodb';
 
 import AWS = require('aws-sdk');
 const s3 = new AWS.S3();
+const dbClient = new DocumentClient();
 
 exports.main = async (event: S3Event) => {
     // const dbClient = new DocumentClient();
@@ -30,6 +31,17 @@ exports.main = async (event: S3Event) => {
     const data = await s3.getObject(params).promise();
     const dataString = data.Body!.toString('utf-8');
 
-    
-
+    const flashcards = JSON.parse(dataString);
+    for (const flashcard of flashcards) {
+        await dbClient.put({
+            Item: {
+                id: flashcard.id,
+                question: flashcard.question,
+                answer: flashcard.answer,
+                topic: flashcard.topic,
+                difficulty: flashcard.difficulty,
+            },
+            TableName: process.env.TABLE_NAME!
+        }).promise();
+    }
 }

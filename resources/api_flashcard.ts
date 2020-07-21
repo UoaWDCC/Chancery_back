@@ -4,11 +4,11 @@ import { DocumentClient } from 'aws-sdk/clients/dynamodb';
 exports.main = async (event: APIGatewayProxyEvent) => {
     const dbClient = new DocumentClient();
 
-    if (event.httpMethod === "GET" && event.pathParameters && event.pathParameters.Id) {
+    if (event.httpMethod === "GET" && event.pathParameters && event.pathParameters.id) {
         const params = {
             TableName: 'flashcard-table',
             Key: {
-                Id: event.pathParameters.Id
+                id: event.pathParameters.id
             }
         };
 

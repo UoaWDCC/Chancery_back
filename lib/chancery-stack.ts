@@ -14,7 +14,7 @@ export class ChanceryStack extends cdk.Stack {
       {
         tableName: 'flashcard-table',
         partitionKey: {
-          name: 'Id',
+          name: 'id',
           type: dynamodb.AttributeType.STRING,
         },
         billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
@@ -36,7 +36,7 @@ export class ChanceryStack extends cdk.Stack {
 
     // single flashcard lambda integration
     const apiFlashcardResource = restApi.root.addResource('flashcard');
-    const idResource = apiFlashcardResource.addResource('{Id}');
+    const idResource = apiFlashcardResource.addResource('{id}');
 
     const apiLambdaIntegration = new apigateway.LambdaIntegration(singleFlashcardLambda);
     idResource.addMethod('GET', apiLambdaIntegration);
@@ -67,12 +67,13 @@ export class ChanceryStack extends cdk.Stack {
         code: lambda.Code.asset("resources"),
         handler: "upload_processor.main",
         environment: {
-          TARGET_BUCKET_NAME: flashcardBucket.bucketName,
+          TABLE_NAME: flashcardTable.tableName,
         },
       }
     );
 
     flashcardBucket.grantRead(uploadProcessor);
+    flashcardTable.grantReadWriteData(uploadProcessor);
 
     const uploadEvent = new lambdaEventSources.S3EventSource(
       flashcardBucket,
