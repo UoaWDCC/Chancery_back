@@ -35,7 +35,7 @@ exports.main = async (event: S3Event) => {
     for (const flashcard of flashcards) {
         await dbClient.put({
             Item: {
-                id: flashcard.id,
+                id: flashcard.id.toString(),
                 question: flashcard.question,
                 answer: flashcard.answer,
                 topic: flashcard.topic,
