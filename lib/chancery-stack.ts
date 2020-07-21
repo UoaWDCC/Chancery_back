@@ -20,30 +20,41 @@ export class ChanceryStack extends cdk.Stack {
         billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       });
 
-    const apiHandler = new lambda.Function(this, "APIflashcard", {
+    // create api
+    const restApi = new apigateway.RestApi(this,
+      'flashcard-api',
+    );
+
+    // single flashcard lambda
+    const singleFlashcardLambda = new lambda.Function(this, "APIflashcard", {
       runtime: lambda.Runtime.NODEJS_10_X,
       code: lambda.Code.asset("resources"),
       handler: "api_flashcard.main",
     });
 
-    apiHandler.addToRolePolicy(new iam.PolicyStatement({
-      actions: ['dynamodb:GetItem'],
-      resources: [flashcardTable.tableArn],
-    }));
+    flashcardTable.grantReadData(singleFlashcardLambda);
 
-    const restApi = new apigateway.LambdaRestApi(this,
-      'rest-api',
-      {
-        proxy: false,
-        handler: apiHandler,
-      },
-    );
-
+    // single flashcard lambda integration
     const apiFlashcardResource = restApi.root.addResource('flashcard');
     const idResource = apiFlashcardResource.addResource('{Id}');
 
-    const apiLambdaIntegration = new apigateway.LambdaIntegration(apiHandler);
+    const apiLambdaIntegration = new apigateway.LambdaIntegration(singleFlashcardLambda);
     idResource.addMethod('GET', apiLambdaIntegration);
+
+    // all flashcard lambda 
+    const scanFlashcardLambda = new lambda.Function(this, 'ScanFlashcard', {
+      runtime: lambda.Runtime.NODEJS_10_X,
+      code: lambda.Code.fromAsset('resources'),
+      handler: 'scan_flashcard.main'
+    });
+
+    // all flashcard lambda integration
+    const apiScanFlashcardInteg = new apigateway.LambdaIntegration(scanFlashcardLambda);
+    const apiScanFlashcard = apiFlashcardResource.addResource('scan');
+    apiScanFlashcard.addMethod('GET', apiScanFlashcardInteg);
+
+    flashcardTable.grantReadData(scanFlashcardLambda);
+
 
     const flashcardBucket = new s3.Bucket(
       this,
@@ -60,7 +71,7 @@ export class ChanceryStack extends cdk.Stack {
         },
       }
     );
-    
+
     flashcardBucket.grantRead(uploadProcessor);
 
     const uploadEvent = new lambdaEventSources.S3EventSource(
@@ -69,6 +80,5 @@ export class ChanceryStack extends cdk.Stack {
     );
 
     uploadProcessor.addEventSource(uploadEvent);
-
   }
 }

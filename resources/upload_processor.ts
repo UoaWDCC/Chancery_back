@@ -18,8 +18,8 @@ exports.main = async (event: S3Event) => {
 
     // Check that the file type is supported  
     const fileType = typeMatch[1].toLowerCase();
-    if (fileType != "csv") {
-        console.log(`Unsupported image type: ${fileType}`);
+    if (fileType != "json") {
+        console.log(`Unsupported file type: ${fileType}`);
         return;
     }
 
@@ -30,6 +30,6 @@ exports.main = async (event: S3Event) => {
     const data = await s3.getObject(params).promise();
     const dataString = data.Body!.toString('utf-8');
 
-    console.log(dataString)
+    
 
 }
