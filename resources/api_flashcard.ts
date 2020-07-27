@@ -17,7 +17,11 @@ exports.main = async (event: APIGatewayProxyEvent) => {
             if (result.Item) {
                 return {
                     body: JSON.stringify(result.Item),
-                    statusCode: 200
+                    statusCode: 200,
+                    headers: {
+                        "Access-Control-Allow-Origin": "*",
+                        "Access-Control-Allow-Methods": "GET"
+                    }
                 }
             } else throw new Error();
         } catch {

@@ -15,7 +15,11 @@ exports.main = async (event: APIGatewayProxyEvent) => {
             var result = await dbClient.scan(params).promise()
             return {
                 body: JSON.stringify(result.Items),
-                statusCode: 200
+                statusCode: 200,
+                headers: {
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "GET"
+                }
             }
         } catch {
             return {
@@ -42,13 +46,21 @@ exports.main = async (event: APIGatewayProxyEvent) => {
                 }
                 return {
                     body: JSON.stringify(topicsList),
-                    statusCode: 200
+                    statusCode: 200,
+                    headers: {
+                        "Access-Control-Allow-Origin": "*",
+                        "Access-Control-Allow-Methods": "GET"
+                    }
                 }
             }
 
             return {
                 body: JSON.stringify(result.Items),
-                statusCode: 200
+                statusCode: 200,
+                headers: {
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "GET"
+                }
             }
         } catch {
             return {
