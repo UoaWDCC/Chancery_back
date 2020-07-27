@@ -53,8 +53,13 @@ export class ChanceryStack extends cdk.Stack {
     const apiScanFlashcard = apiFlashcardResource.addResource('scan');
     apiScanFlashcard.addMethod('GET', apiScanFlashcardInteg);
 
-    flashcardTable.grantReadData(scanFlashcardLambda);
+    const topicFilterResource = apiScanFlashcard.addResource('{topic}');
+    topicFilterResource.addMethod('GET', apiScanFlashcardInteg);
 
+    const topicsListResource = apiScanFlashcard.addResource('topics-list');
+    topicsListResource.addMethod('GET', apiScanFlashcardInteg);
+
+    flashcardTable.grantReadData(scanFlashcardLambda);
 
     const flashcardBucket = new s3.Bucket(
       this,
